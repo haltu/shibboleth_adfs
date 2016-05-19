@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Attributes xmlns="urn:mace:shibboleth:2.0:attribute-map" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <Attribute name="http://schemas.microsoft.com/LiveID/Federation/2008/05/ImmutableID" id="user_identity"/>
+  <Attribute name="Source user ID" id="user_identity"/>
+
+</Attributes>

@@ -1,0 +1,99 @@
+<SPConfig xmlns="urn:mace:shibboleth:2.0:native:sp:config"
+    xmlns:conf="urn:mace:shibboleth:2.0:native:sp:config"
+    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+    xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+    xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+    clockSkew="180">
+
+
+    <!-- The ApplicationDefaults element is where most of Shibboleth's SAML bits are defined. -->
+    <ApplicationDefaults entityID="https://EXAMPLE.OWN.DOMAIN.ENTITY.ID/"
+      REMOTE_USER="eppn persistent-id targeted-id" signing="front"
+      encryption="false">
+
+        <!--
+        Controls session lifetimes, address checks, cookie handling, and the protocol handlers.
+        You MUST supply an effectively unique handlerURL value for each of your applications.
+        The value defaults to /Shibboleth.sso, and should be a relative path, with the SP computing
+        a relative value based on the virtual host. Using handlerSSL="true", the default, will force
+        the protocol to be https. You should also add a cookieProps setting of "; path=/; secure"
+        in that case. Note that while we default checkAddress to "false", this has a negative
+        impact on the security of the SP. Stealing cookies/sessions is much easier with this disabled.
+        -->
+        <Sessions lifetime="28800" timeout="3600" checkAddress="false" relayState="ss:mem" handlerSSL="true">
+
+            <!-- There needs to be a default IdP. We don't have one selected for the users we use this dummy. -->
+            <SSO entityID="not-configured">SAML2</SSO>
+
+            <Logout>SAML2</Logout>
+
+            <!-- Extension service that generates "approximate" metadata based on SP configuration. -->
+            <Handler type="MetadataGenerator" Location="/Metadata" signing="false"/>
+
+            <!-- Status reporting service. -->
+            <Handler type="Status" Location="/Status" acl="127.0.0.1"/>
+
+            <!-- Session diagnostic service. -->
+            <Handler type="Session" Location="/Session" showAttributeValues="true"/>
+
+            <!-- JSON feed of discovery information.
+            <Handler type="DiscoveryFeed" Location="/DiscoFeed"/> -->
+        </Sessions>
+
+        <!--
+        Allows overriding of error template information/filenames. You can
+        also add attributes with values that can be plugged into the templates.
+        -->
+        <Errors supportContact="root@localhost"
+            logoLocation="/shibboleth-sp/logo.jpg"
+            styleSheet="/shibboleth-sp/main.css"/>
+
+        <MetadataProvider type="XML" uri="https://EXAMPLE.ONE.METADATA.PROVIDER/FederationMetadata/2007-06/FederationMetadata.xml"
+          backingFilePath="adfs_EXAMPLE_ONE.xml" reloadInterval="7200">
+        </MetadataProvider>
+
+        <MetadataProvider type="XML" uri="https://EXAMPLE.TWO.METADATA.PROVIDER/FederationMetadata/2007-06/FederationMetadata.xml"
+          backingFilePath="adfs_EXAMPLE_TWO.xml" reloadInterval="7200">
+        </MetadataProvider>
+
+        <!-- Example of locally maintained metadata. -->
+        <!-- Map to extract attributes from SAML assertions. -->
+        <AttributeExtractor type="XML" validate="true" path="attribute-map.xml"/>
+
+        <!-- Use a SAML query if no attributes are supplied during SSO. -->
+        <AttributeResolver type="Query" subjectMatch="true"/>
+
+        <!-- Default filtering policy for recognized attributes, lets other data pass. -->
+        <AttributeFilter type="XML" validate="true" path="attribute-policy.xml"/>
+
+        <!-- Simple file-based resolver for using a single keypair. -->
+        <CredentialResolver type="File" key="sp-key.pem" certificate="sp-cert.pem"/>
+
+        <!-- If the IdP is using older than 3.0 ADFS then you can disable message signing to get
+             things working. This is bad and should be avoided at all cost as it opens up attack vectors -->
+        <!--
+        <ApplicationOverride id="rusko" entityID="https://EXAMPLE.ENTITY.ID/"
+                         REMOTE_USER="eppn persistent-id targeted-id" signing="false"
+                         encryption="false">
+
+          <Sessions lifetime="28800" timeout="3600" checkAddress="false" relayState="ss:mem"
+                    handlerSSL="true" handlerURL="https://EXAMPLE.OWN.DOMAIN/EXAMPLETHREEORG/Shibboleth.sso">
+            <SSO entityID="not-configured">SAML2</SSO>
+            <Logout>SAML2</Logout>
+            <Handler type="MetadataGenerator" Location="/Metadata" signing="false"/>
+            <Handler type="Status" Location="/Status" acl="127.0.0.1"/>
+            <Handler type="Session" Location="/Session" showAttributeValues="true"/>
+          </Sessions>
+        </ApplicationOverride>
+        -->
+
+    </ApplicationDefaults>
+
+
+    <!-- Policies that determine how to process and authenticate runtime messages. -->
+    <SecurityPolicyProvider type="XML" validate="true" path="security-policy.xml"/>
+
+    <!-- Low-level configuration about protocols and bindings available for use. -->
+    <ProtocolProvider type="XML" validate="true" reloadChanges="false" path="protocols.xml"/>
+
+</SPConfig>
